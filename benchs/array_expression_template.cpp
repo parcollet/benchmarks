@@ -20,6 +20,7 @@
  ******************************************************************************/
 #include <triqs/arrays.hpp>
 #include <benchmark/benchmark.h>
+#include "./common.hpp"
 using namespace std;
 using namespace triqs::arrays;
 
@@ -30,7 +31,11 @@ static void expression_template(benchmark::State& state) {
   for (int j = 0; j < N; ++j) A(i, j) = 10 * i + j;
  auto B = A, C = A, D = A;
 
- while (state.KeepRunning()) { A = B + 3 * C + D; }
+ while (state.KeepRunning()) { 
+  escape(&A);
+  A = B + 3 * C + D; 
+  clobber();
+}
 }
 BENCHMARK(expression_template)->Arg(30)->Arg(300);
 
@@ -43,9 +48,11 @@ static void bare_loop_with_access(benchmark::State& state) {
  auto B = A, C = A, D = A;
 
  while (state.KeepRunning()) {
+  escape(&A);
   for (int i = 0; i < N; ++i)
-   for (int j = 0; j < N; ++j) 
-    A(i, j) = B(i, j) + 3 * C(i, j) + D(i, j);
+   for (int j = 0; j < N; ++j) A(i, j) = B(i, j) + 3 * C(i, j) + D(i, j);
+  clobber();
+
  }
 }
 BENCHMARK(bare_loop_with_access)->Arg(30)->Arg(300);
