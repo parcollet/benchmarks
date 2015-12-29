@@ -31,7 +31,7 @@ static void wgf(benchmark::State& state) {
  double beta = 10;
  auto g = gf<imfreq, scalar_valued>{{beta, Fermion, Nfreq}};
  while (state.KeepRunning()) {
-  escape(&g);
+  escape(&g.data());
   for (int n = 0; n < Nfreq; ++n) {
    //g[n] += 1;
    g.data()(n) += 1;
