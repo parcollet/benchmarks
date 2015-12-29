@@ -24,25 +24,25 @@
 
 using namespace triqs::arrays;
 using namespace triqs;
-const int N1 = 200, N2 = 300;
+const int N1 = 200 + int(8 * std::sin(0)), N2 = 300 + int(8 * std::sin(0));
 
-static void BM_plain_for_no_ptr_const(benchmark::State& state) {
+static void plain_for_const(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  while (state.KeepRunning()) {
   for (int j = 0; j < N2; ++j)
    for (int i = 0; i < N1; ++i) A(i, j) = 1876;
  }
 }
-BENCHMARK(BM_plain_for_no_ptr_const);
+BENCHMARK(plain_for_const);
 
-static void BM_plain_for_no_ptr(benchmark::State& state) {
+static void plain_for(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  while (state.KeepRunning()) {
   for (int j = 0; j < N2; ++j)
    for (int i = 0; i < N1; ++i) A(i, j) = 10 * i + j;
  }
 }
-BENCHMARK(BM_plain_for_no_ptr);
+BENCHMARK(plain_for);
 
 static void assign_to_const(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
@@ -63,7 +63,6 @@ static void assign_to_const_with_iterators(benchmark::State& state) {
  }
 }
 BENCHMARK(assign_to_const_with_iterators);
-
 
 
 BENCHMARK_MAIN();

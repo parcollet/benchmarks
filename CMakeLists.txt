@@ -15,15 +15,8 @@ find_package(TRIQS REQUIRED)
 
 add_subdirectory(google_benchmark)
 
-# 
-include_directories(${GOOGLE_BENCHMARK_ROOT}/include ${TRIQS_INCLUDE_ALL})
-#add_definitions(-L${GOOGLE_BENCHMARK_ROOT}/lib )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/google_benchmark/include ${TRIQS_INCLUDE_ALL})
 
-# All test
-FILE(GLOB_RECURSE TestList RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/src *.cpp)
-FOREACH( TestName1  ${TestList} )
- STRING(REPLACE ".cpp" "" TestName ${TestName1})
- add_executable( ${TestName}  ${CMAKE_CURRENT_SOURCE_DIR}/${TestName}.cpp )
- target_link_libraries(${TestName} ${TRIQS_LIBRARY_ALL} benchmark )
-ENDFOREACH( TestName1  ${TestList} )
+add_subdirectory(benchs)
+
 
