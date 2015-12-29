@@ -20,7 +20,7 @@ include_directories(${GOOGLE_BENCHMARK_ROOT}/include ${TRIQS_INCLUDE_ALL})
 #add_definitions(-L${GOOGLE_BENCHMARK_ROOT}/lib )
 
 # All test
-FILE(GLOB TestList RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+FILE(GLOB_RECURSE TestList RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/src *.cpp)
 FOREACH( TestName1  ${TestList} )
  STRING(REPLACE ".cpp" "" TestName ${TestName1})
  add_executable( ${TestName}  ${CMAKE_CURRENT_SOURCE_DIR}/${TestName}.cpp )
