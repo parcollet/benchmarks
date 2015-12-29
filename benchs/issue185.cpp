@@ -60,7 +60,7 @@ static void vec_complex(benchmark::State& state) {
  while (state.KeepRunning()) {
   escape(&V);
   for (int n = 0; n < Nfreq; ++n) {
-   V[n] += 1;
+   V(n) += 1;
    clobber();
   }
  }

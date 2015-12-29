@@ -21,6 +21,7 @@
 #include <triqs/arrays.hpp>
 #include <triqs/arrays/linalg/det_and_inverse.hpp>
 #include <benchmark/benchmark.h>
+#include "./common.hpp"
 
 using namespace triqs::arrays;
 using namespace triqs;
@@ -29,8 +30,10 @@ const int N1 = 200 + int(8 * std::sin(0)), N2 = 300 + int(8 * std::sin(0));
 static void plain_for_const(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  while (state.KeepRunning()) {
-  for (int j = 0; j < N2; ++j)
+ escape(&A);
+ for (int j = 0; j < N2; ++j)
    for (int i = 0; i < N1; ++i) A(i, j) = 1876;
+  clobber();
  }
 }
 BENCHMARK(plain_for_const);
@@ -38,8 +41,10 @@ BENCHMARK(plain_for_const);
 static void plain_for(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  while (state.KeepRunning()) {
+ escape(&A);
   for (int j = 0; j < N2; ++j)
    for (int i = 0; i < N1; ++i) A(i, j) = 10 * i + j;
+  clobber();
  }
 }
 BENCHMARK(plain_for);
@@ -48,8 +53,10 @@ static void assign_to_const(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  auto V = make_view(A);
  while (state.KeepRunning()) {
+ escape(&V);
   // make_view(A) = 1867;
   V = 1867;
+  clobber();
  }
 }
 BENCHMARK(assign_to_const);
@@ -59,7 +66,11 @@ static void assign_to_const_with_iterators(benchmark::State& state) {
  triqs::arrays::array<double, 2> A(N1, N2, FORTRAN_LAYOUT);
  auto V = make_view(A);
  while (state.KeepRunning()) {
-  for (auto it = A.begin(); it; ++it) { *it = 1876; }
+  for (auto it = A.begin(); it; ++it) { 
+ escape(&A);
+   *it = 1876;
+  clobber();
+  }
  }
 }
 BENCHMARK(assign_to_const_with_iterators);

@@ -44,7 +44,8 @@ static void bare_loop_with_access(benchmark::State& state) {
 
  while (state.KeepRunning()) {
   for (int i = 0; i < N; ++i)
-   for (int j = 0; j < N; ++j) A(i, j) = B(i, j) + 3 * C(i, j) + D(i, j);
+   for (int j = 0; j < N; ++j) 
+    A(i, j) = B(i, j) + 3 * C(i, j) + D(i, j);
  }
 }
 BENCHMARK(bare_loop_with_access)->Arg(30)->Arg(300);
