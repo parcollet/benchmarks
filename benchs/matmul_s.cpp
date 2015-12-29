@@ -1,79 +1,83 @@
-//#define TRIQS_ARRAYS_ENFORCE_BOUNDCHECK
-
+/*******************************************************************************
+ *
+ * TRIQS: a Toolbox for Research in Interacting Quantum Systems
+ *
+ * Copyright (C) 2011 by O. Parcollet
+ *
+ * TRIQS is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * TRIQS is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * TRIQS. If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
 #include <triqs/arrays.hpp>
-
+#include <benchmark/benchmark.h>
 using namespace triqs::arrays;
-
-#define TEST(X) std::cout << BOOST_PP_STRINGIZE((X)) << " ---> "<< (X) <<std::endl<<std::endl;
-
-const int L = 20;
-const int nl_interne = 2000;
-const int N = 1000;
-
-struct matmul1 {
- void operator()() {
-
-  matrix<double> A(L,L), B(L,L),C(L,L);
-  A() = 0.01; B() = 1.2; C() = 0;
-
-  for (int u =0; u<nl_interne; ++u){
-   C = A*B;
-  }
- }
-};
+using namespace triqs::clef;
+using namespace triqs;
 
 
-struct matmul2 {
- void operator()() {
-
-  matrix<double> A(L,L), B(L,L),C(L,L);
-  A() = 0.01; B() = 1.2; C() = 0;
-
-  for (int u =0; u<nl_interne; ++u){
-   A = make_clone(A)*B;
-  }
- }
-};
-
-struct gemm_direct {
- void operator()() {
-
-  matrix<double> A(L,L), B(L,L),C(L,L);
-  A() = 0.01; B() = 1.2; C() = 0;
-
-  for (int u =0; u<nl_interne; ++u){
-   blas::gemm(1.0, A, B, 0.0, C);
-  }
- }
-};
-
-struct matmul_2AB {
- void operator()() {
-  matrix<double> A(L,L), B(L,L),C(L,L);
-  A() = 0.01; B() = 1.2; C() = 0;
-  for (int u =0; u<nl_interne; ++u){
-   C = 2*A*B;
-  }
- }
-};
-
-struct gemm_direct_2AB {
- void operator()() {
-  matrix<double> A(L,L), B(L,L),C(L,L);
-  A() = 0.01; B() = 1.2; C() = 0;
-  for (int u =0; u<nl_interne; ++u){
-   blas::gemm(2.0, A, B, 0.0, C);
-  }
- }
-};
-
-#include "./speed_tester.hpp"
-int main() {
- speed_tester<matmul1> (5000);
- speed_tester<matmul2> (5000);
- speed_tester<gemm_direct> (5000);
- speed_tester<matmul_2AB> (5000);
- speed_tester<gemm_direct_2AB> (5000);
- return 0;
+static void A_x_B(benchmark::State& state) {
+ const int L = state.range_x();
+ matrix<double> A(L, L), B(L, L), C(L, L);
+ A() = 0.01;
+ B() = 1.2;
+ C() = 0;
+ while (state.KeepRunning()) { C = A * B; }
 }
+BENCHMARK(A_x_B)->Arg(30)->Arg(100)->Arg(300)->Arg(1000);
 
+
+static void clone_A_x_B(benchmark::State& state) {
+ const int L = state.range_x();
+ matrix<double> A(L, L), B(L, L), C(L, L);
+ A() = 0.01;
+ B() = 1.2;
+ C() = 0;
+ while (state.KeepRunning()) { A = make_clone(A) * B; }
+}
+BENCHMARK(clone_A_x_B)->Arg(30)->Arg(100)->Arg(300)->Arg(1000);
+
+
+static void A_x_B_gemm(benchmark::State& state) {
+ const int L = state.range_x();
+ matrix<double> A(L, L), B(L, L), C(L, L);
+ A() = 0.01;
+ B() = 1.2;
+ C() = 0;
+ while (state.KeepRunning()) { blas::gemm(1.0, A, B, 0.0, C); }
+}
+BENCHMARK(A_x_B_gemm)->Arg(30)->Arg(100)->Arg(300)->Arg(1000);
+
+
+static void two_A_x_B(benchmark::State& state) {
+ const int L = state.range_x();
+ matrix<double> A(L, L), B(L, L), C(L, L);
+ A() = 0.01;
+ B() = 1.2;
+ C() = 0;
+ while (state.KeepRunning()) { C = 2 * A * B; }
+}
+BENCHMARK(two_A_x_B)->Arg(30)->Arg(100)->Arg(300)->Arg(1000);
+
+
+static void two_A_x_B_gemm(benchmark::State& state) {
+ const int L = state.range_x();
+ matrix<double> A(L, L), B(L, L), C(L, L);
+ A() = 0.01;
+ B() = 1.2;
+ C() = 0;
+ while (state.KeepRunning()) { blas::gemm(2.0, A, B, 0.0, C); }
+}
+BENCHMARK(two_A_x_B_gemm)->Arg(30)->Arg(100)->Arg(300)->Arg(1000);
+
+
+BENCHMARK_MAIN();

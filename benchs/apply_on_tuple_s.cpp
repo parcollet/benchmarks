@@ -2,7 +2,7 @@
  *
  * TRIQS: a Toolbox for Research in Interacting Quantum Systems
  *
- * Copyright (C) 2013 by O. Parcollet
+ * Copyright (C) 2011 by O. Parcollet
  *
  * TRIQS is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -19,40 +19,38 @@
  *
  ******************************************************************************/
 #include <triqs/utility/tuple_tools.hpp>
+#include <benchmark/benchmark.h>
+#include "./common.hpp"
+using namespace triqs;
 #include <functional>
-#include <iostream>
 
-struct fun { double operator()(int i, double x, double y, int k) {return k + i+ x + 2*y;} };
-
-const int nl_interne = 1000000;
-
-struct with_unpack {
-  double s;
- ~with_unpack() { std::cout  << s<< std::endl ;}
- void operator()() {
-  //std::function<double(int,double,double,int)> F(f);
-  fun F;
-  auto t = std::make_tuple(1,2.3,4.3,8);
-  for (int u =0; u<nl_interne; ++u) { s += triqs::tuple::apply(F,t);}
- }
+struct fun {
+ double operator()(int i, double x, double y, int k) { return k + i + x + 2 * y; }
 };
 
-struct manual_code {
-  double s;
- ~manual_code() { std::cout  << s<< std::endl ;}
- void operator()() {
- // std::function<double(int,double,double,int)> F(f);
-  fun F;
-  for (int u =0; u<nl_interne; ++u) { s += F(1,2.3,4.3,8); }
+static void apply(benchmark::State& state) {
+ fun F;
+ double s=0;
+ auto t = std::make_tuple(1, 2.3, 4.3, 8);
+ while (state.KeepRunning()) {
+  escape(&s);
+  s += triqs::tuple::apply(F, t);
+  clobber();
  }
-};
-
-#include "./speed_tester.hpp"
-int main() {
- speed_tester<with_unpack> (50000);
- speed_tester<manual_code> (50000);
- return 0;
 }
+BENCHMARK(apply);
 
+static void manual_code(benchmark::State& state) {
+ fun F;
+ double s=0;
+ auto t = std::make_tuple(1, 2.3, 4.3, 8);
+ while (state.KeepRunning()) {
+  escape(&s);
+  s += F(1, 2.3, 4.3, 8);
+  clobber();
+ }
+}
+BENCHMARK(manual_code);
 
+BENCHMARK_MAIN();
 

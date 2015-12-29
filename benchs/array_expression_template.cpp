@@ -18,54 +18,36 @@
  * TRIQS. If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include <triqs/clef.hpp>
-#include "./clef_common.hpp"
+#include <triqs/arrays.hpp>
 #include <benchmark/benchmark.h>
-#include "./common.hpp"
-using namespace triqs;
+using namespace std;
+using namespace triqs::arrays;
 
-static void eval_exp(benchmark::State& state) {
- F1 f(2);
- double y = 2;
- auto expr = f(x_) + 2 * y_;
- double s = 0;
+static void expression_template(benchmark::State& state) {
+ const int N = state.range_x();
+ matrix<double> A(N, N);
+ for (int i = 0; i < N; ++i)
+  for (int j = 0; j < N; ++j) A(i, j) = 10 * i + j;
+ auto B = A, C = A, D = A;
+
+ while (state.KeepRunning()) { A = B + 3 * C + D; }
+}
+BENCHMARK(expression_template)->Arg(30)->Arg(300);
+
+
+static void bare_loop_with_access(benchmark::State& state) {
+ const int N = state.range_x();
+ matrix<double> A(N, N);
+ for (int i = 0; i < N; ++i)
+  for (int j = 0; j < N; ++j) A(i, j) = 10 * i + j;
+ auto B = A, C = A, D = A;
+
  while (state.KeepRunning()) {
-  escape(&s);
-  s += eval(expr, x_ = 1 / 10000.0, y_ = y);
-  clobber();
+  for (int i = 0; i < N; ++i)
+   for (int j = 0; j < N; ++j) A(i, j) = B(i, j) + 3 * C(i, j) + D(i, j);
  }
 }
-BENCHMARK(eval_exp);
-
-
-static void eval_manual(benchmark::State& state) {
- F1 f(2);
- double x = 1, y = 2;
- double s = 0;
- while (state.KeepRunning()) {
-  escape(&s);
-  x = 1 / 10000.0;
-  s += f(x) + 2 * y;
-  clobber();
- }
-}
-BENCHMARK(eval_manual);
-
-/*
-static void eval_exp1(benchmark::State& state) {
- F1 f(2);
- triqs::clef::function<double(double)> f7;
- f7(x_) = f(x_) + 2 * x_;
- triqs::clef::function<double(double)> f2;
- f2(x_) = f(x_) + 2 * x_;
- double s = 0;
- while (state.KeepRunning()) {
-  escape(&s);
-  s += f2(1 / 10000.0);
-  clobber();
- }
-}
-BENCHMARK(eval_exp1);
-*/
+BENCHMARK(bare_loop_with_access)->Arg(30)->Arg(300);
 
 BENCHMARK_MAIN();
+
