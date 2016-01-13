@@ -34,8 +34,8 @@ using namespace triqs;
 
 static void with_map(benchmark::State& state) {
  const int L = state.range_x();
- random_generator rng;
  std::map<int, int> m;
+ random_generator rng;
  while (state.KeepRunning()) {
   for (int j = 0; j < L; ++j) {
    escape(&m);
@@ -44,14 +44,16 @@ static void with_map(benchmark::State& state) {
   }
  }
 }
-BENCHMARK(with_map)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);;
+BENCHMARK(with_map)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
 
-struct _int { int x;};
+struct _int {
+ int x;
+};
 
 static void with_tree(benchmark::State& state) {
  const int L = state.range_x();
  random_generator rng;
- rb_tree<int,_int> m;
+ rb_tree<int, _int> m;
  while (state.KeepRunning()) {
   for (int j = 0; j < L; ++j) {
    escape(&m);
@@ -61,7 +63,7 @@ static void with_tree(benchmark::State& state) {
   }
  }
 }
-BENCHMARK(with_tree)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);;
+BENCHMARK(with_tree)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
 
 static void just_rng(benchmark::State& state) {
  const int L = state.range_x();
@@ -76,7 +78,65 @@ static void just_rng(benchmark::State& state) {
   }
  }
 }
-BENCHMARK(just_rng)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);;
+BENCHMARK(just_rng)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
+
+
+static void iter_map(benchmark::State& state) {
+ const int L = state.range_x();
+ random_generator rng;
+ std::map<int, int> m;
+ for (int j = 0; j < L; ++j) { m.insert({rng(L), j}); }
+ int u;
+ while (state.KeepRunning()) {
+  for (auto const& x : m) {
+   escape(&u);
+   u += x.first;
+   clobber();
+  }
+ }
+}
+BENCHMARK(iter_map)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
+
+static void iter_tree(benchmark::State& state) {
+ const int L = state.range_x();
+ random_generator rng;
+ rb_tree<int, _int> m;
+ for (int j = 0; j < L; ++j) {
+  int u = rng(L);
+  m.insert(u, {j});
+ }
+ int u;
+ while (state.KeepRunning()) {
+  for (auto const& n : m) {
+   escape(&u);
+   u += n->key;
+   clobber();
+  }
+ }
+}
+BENCHMARK(iter_tree)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
+
+static void iter_tree_flatten(benchmark::State& state) {
+ const int L = state.range_x();
+ random_generator rng;
+ rb_tree<int, _int> m;
+ for (int j = 0; j < L; ++j) {
+  int u = rng(L);
+  m.insert(u, {j});
+ }
+ int u;
+ while (state.KeepRunning()) {
+  auto nodes = flatten2(m);
+   escape(&nodes);
+  /*for (auto const& n : nodes) {
+   escape(&u);
+   u += n->key;
+   clobber();
+  }*/
+   clobber();  
+ }
+}
+BENCHMARK(iter_tree_flatten)->Arg(100)->Arg(1000)->Arg(10000)->Arg(100000);
 
 
 BENCHMARK_MAIN();
