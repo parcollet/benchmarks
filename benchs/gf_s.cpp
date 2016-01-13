@@ -20,6 +20,7 @@
  ******************************************************************************/
 #include <triqs/gfs.hpp>
 #include <benchmark/benchmark.h>
+#include "./common.hpp"
 using namespace triqs::arrays;
 using namespace triqs::gfs;
 using namespace triqs;
@@ -38,8 +39,10 @@ static void with_g(benchmark::State& state) {
  auto G = gf<imfreq>{{beta, Fermion, N}, {2, 2}};
  G() = 0;
  while (state.KeepRunning()) {
+  escape(&G);
   // for (int i =0; i<N-1; ++i) G.on_mesh(i)(0,0) = fnt(i);
   for (int i = 0; i < N - 1; ++i) G[i](0, 0) = fnt(i);
+  clobber();
  }
 }
 BENCHMARK(with_g)->Arg(30)->Arg(300)->Arg(3000);
@@ -51,7 +54,9 @@ static void direct_with_array(benchmark::State& state) {
  G() = 0;
  auto V = G.data();
  while (state.KeepRunning()) {
+  escape(&V);
   for (int i = 0; i < N - 1; ++i) V(i, 0, 0) = fnt(i);
+  clobber();
  }
 }
 BENCHMARK(direct_with_array)->Arg(30)->Arg(300)->Arg(3000);
