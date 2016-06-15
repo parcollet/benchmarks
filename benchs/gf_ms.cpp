@@ -99,7 +99,6 @@ static void with_brack(benchmark::State& state) {
 BENCHMARK(with_brack);
 
 
-
 static void with_data(benchmark::State& state) {
  double beta = 10;
  auto G = gf<imfreq>{{beta, Fermion, N}, {2, 2}};

@@ -12,6 +12,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 # Load TRIQS, including all predefined variables from TRIQS installation
 find_package(TRIQS REQUIRED)
+add_definitions(${TRIQS_CXX_DEFINITIONS})
 
 add_subdirectory(google_benchmark)
 

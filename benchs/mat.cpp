@@ -37,8 +37,21 @@ struct mat_1x1 {
 
 struct mat_2x2 {
  double data[4];
+ void * data2;
+ triqs::arrays::indexmaps::cuboid::map<2,void> I;
+ triqs::arrays::storages::shared_block<double,true> S;
  double & operator()(int i, int j) { return data[1*i + 2*j];}
  double operator()(int i, int j) const { return data[1*i + 2*j];}
+
+ 
+ mat_2x2(): I{{mini_vector<size_t,2>{2,2}}}, S(4) {
+  //data2 = triqs::arrays::storages::arrays_allocator.allocate(32).ptr;
+  //escape(data2);
+ }
+ ~mat_2x2() { 
+ // triqs::arrays::storages::arrays_allocator.deallocate({data2, 32}); 
+  }
+  
 };
 
 struct mat_3x3 {
@@ -105,7 +118,7 @@ mat_stack mult(mat_stack const &a, mat_stack const &b) {
   
   return r;
 }
-
+/*
 static void create_variant(benchmark::State& state) {
  while (state.KeepRunning()) {
   triqs::utility::variant<mat_2x2,mat_3x3> a;
@@ -116,14 +129,16 @@ static void create_variant(benchmark::State& state) {
  }
 }
 BENCHMARK(create_variant);
-
+*/
 
 static void create_s(benchmark::State& state) {
  while (state.KeepRunning()) {
   mat_2x2 a;
   escape(&a);
-  a(0,0) = 10;
-  a(1,1) = 20;
+  //escape(&a.S);
+  //escape(&a.I);
+  //a(0,0) = 10;
+  //a(1,1) = 20;
   clobber();
  }
 }
@@ -134,8 +149,8 @@ static void create_d(benchmark::State& state) {
  while (state.KeepRunning()) {
   matrix<double> a(2,2);
   escape(&a);
-  a(0,0) = 10;
-  a(1,1) = 20;
+  //a(0,0) = 10;
+  //a(1,1) = 20;
   clobber();
  }
 }
@@ -184,7 +199,7 @@ struct matrix2b {
  double operator()(int i, int j) const { return data[1 * i + n1 * j]; }
 };
 
-struct matrix2c {
+/*struct matrix2c {
  int n1 = 0, n2 = 0;
  triqs::arrays::storages::mem_block<double> data;
  matrix2c() = default;
@@ -195,7 +210,7 @@ struct matrix2c {
  double operator()(int i, int j) const { return data.p[1 * i + n1 * j]; }
 };
 
-
+*/
 static void create_d2(benchmark::State& state) {
  while (state.KeepRunning()) {
  matrix2 a(2,2);
@@ -247,7 +262,7 @@ static void move_d2b(benchmark::State& state) {
 }
 BENCHMARK(move_d2b);
 
-static void create_d2c(benchmark::State& state) {
+/*static void create_d2c(benchmark::State& state) {
  while (state.KeepRunning()) {
   matrix2c a(2,2);
   escape(&a);
@@ -271,7 +286,7 @@ static void move_d2c(benchmark::State& state) {
  }
 }
 BENCHMARK(move_d2c);
-
+*/
 
 
 static void create_mat_stack(benchmark::State& state) {
