@@ -20,6 +20,9 @@
  ******************************************************************************/
 #include <triqs/arrays.hpp>
 #include <benchmark/benchmark.h>
+#include<cmath>
+#include <limits>
+
 using namespace triqs::arrays;
 using namespace triqs::clef;
 using namespace triqs;
@@ -29,7 +32,8 @@ static void A_x_B(benchmark::State& state) {
  const int L = state.range_x();
  matrix<double> A(L, L), B(L, L), C(L, L);
  A() = 0.01;
- B() = 1.2;
+ //B() =  std::numeric_limits<double>::quiet_NaN(); //1.2;
+ B() =  1.2;
  C() = 0;
  while (state.KeepRunning()) { C = A * B; }
 }

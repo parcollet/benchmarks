@@ -19,7 +19,6 @@
  *
  ******************************************************************************/
 #include <triqs/arrays.hpp>
-#include <triqs/arrays/matrix_tensor_proxy.hpp>
 #include <benchmark/benchmark.h>
 using namespace triqs::arrays;
 using namespace triqs::clef;
@@ -47,7 +46,7 @@ static void proxy(benchmark::State& state) {
  array<double, 3> A(N, 2, 2);
  A() = 0;
  while (state.KeepRunning()) {
-  for (int i = 0; i < N - 1; ++i) make_tensor_proxy(A, i)(0, 0) = fnt(i);
+  for (int i = 0; i < N - 1; ++i) make_array_proxy(A, i)(0, 0) = fnt(i);
  }
 }
 BENCHMARK(proxy)->Arg(30)->Arg(300);
