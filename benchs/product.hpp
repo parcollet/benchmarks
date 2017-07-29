@@ -88,7 +88,7 @@ template <typename... T> struct prod_ed {
 template <typename... T> details::prod_ed<T...> prod(T&&... x) { return {std::tie(std::forward<T>(x)...)}; }
 
 
-
+/*
 int f1(std::vector<int> const& v) {
  int r = 0;
  for (auto[x, y] : prod(v, v)) { r = r + y + x; }
@@ -102,5 +102,5 @@ int f2(std::vector<int> const& v) {
  }
  return r;
 }
-
+*/
 
