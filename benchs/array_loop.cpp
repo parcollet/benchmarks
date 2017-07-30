@@ -64,11 +64,15 @@ static void loop_2(benchmark::State& state) {
  long Ns[3] = {N, N, N};
  array<double, 3> A(N, N, N);
  auto l = [&A, N](int i, int j, int k) { A(i, j, k) = i - j + N * k; };
+ auto ll = [&A, N, &ind]() {  A(ind[0], ind[1], ind[2]) = ind[0] - ind[1] + N * ind[2]; };
 
  while (state.KeepRunning()) {
   for (ind[0] = 0; ind[0] < Ns[0]; ++ind[0])
    for (ind[1] = 0; ind[1] < Ns[0]; ++ind[1])
-    for (ind[2] = 0; ind[2] < Ns[0]; ++ind[2]) l(ind[0], ind[1], ind[2]);
+    for (ind[2] = 0; ind[2] < Ns[0]; ++ind[2]) 
+     ll();
+     // A(ind[0], ind[1], ind[2]) = ind[0] - ind[1] + N * ind[2];
+  //l(ind[0], ind[1], ind[2]);
  }
 }
 BENCHMARK(loop_2)->Arg(30)->Arg(300);
