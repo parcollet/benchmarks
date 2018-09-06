@@ -10,7 +10,7 @@
 #
 # include(CXXFeatureCheck)
 # cxx_feature_check(STD_REGEX)
-# Requires CMake 2.6+
+# Requires CMake 2.8.12+
 
 if(__cxx_feature_check)
   return()
@@ -21,9 +21,35 @@ function(cxx_feature_check FILE)
   string(TOLOWER ${FILE} FILE)
   string(TOUPPER ${FILE} VAR)
   string(TOUPPER "HAVE_${VAR}" FEATURE)
-  message("-- Performing Test ${FEATURE}")
-  try_run(RUN_${FEATURE} COMPILE_${FEATURE}
-          ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp)
+  if (DEFINED HAVE_${VAR})
+    set(HAVE_${VAR} 1 PARENT_SCOPE)
+    add_definitions(-DHAVE_${VAR})
+    return()
+  endif()
+
+  if (NOT DEFINED COMPILE_${FEATURE})
+    message("-- Performing Test ${FEATURE}")
+    if(CMAKE_CROSSCOMPILING)
+      try_compile(COMPILE_${FEATURE}
+              ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+      if(COMPILE_${FEATURE})
+        message(WARNING
+              "If you see build failures due to cross compilation, try setting HAVE_${VAR} to 0")
+        set(RUN_${FEATURE} 0)
+      else()
+        set(RUN_${FEATURE} 1)
+      endif()
+    else()
+      message("-- Performing Test ${FEATURE}")
+      try_run(RUN_${FEATURE} COMPILE_${FEATURE}
+              ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+    endif()
+  endif()
+
   if(RUN_${FEATURE} EQUAL 0)
     message("-- Performing Test ${FEATURE} -- success")
     set(HAVE_${VAR} 1 PARENT_SCOPE)
@@ -36,4 +62,3 @@ function(cxx_feature_check FILE)
     endif()
   endif()
 endfunction()
-

@@ -1,18 +1,30 @@
-# Append triqs installed files to the cmake load path
-list(APPEND CMAKE_MODULE_PATH ${TRIQS_PATH}/share/triqs/cmake)
 
-# start configuration 
-cmake_minimum_required(VERSION 2.8)
-project(triqs_benchs CXX)
-set(CMAKE_BUILD_TYPE Release)
-enable_testing()
+# Start configuration
+cmake_minimum_required(VERSION 2.8.12)
+project(benchs CXX)
 
-# We use shared libraries
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+# Default to Release build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" FORCE)
+endif()
+message( STATUS "-------- BUILD-TYPE: ${CMAKE_BUILD_TYPE} --------")
 
-# Load TRIQS, including all predefined variables from TRIQS installation
-find_package(TRIQS REQUIRED)
-add_definitions(${TRIQS_CXX_DEFINITIONS})
+# Build static libraries
+set(BUILD_SHARED_LIBS OFF)
+
+# 
+add_definitions(-std=c++17 )
+
+# Load Dependencies
+find_package(TRIQS 1.5 REQUIRED)
+find_package(Cpp2Py 1.5 REQUIRED)
+
+# Default Install directory to TRIQS_ROOT if not given or invalid.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTALL_PREFIX}))
+  message(STATUS "No install prefix given (or invalid). Defaulting to TRIQS_ROOT")
+  set(CMAKE_INSTALL_PREFIX ${TRIQS_ROOT} CACHE PATH "default install path" FORCE)
+endif()
+message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
 
 add_subdirectory(google_benchmark)
 
