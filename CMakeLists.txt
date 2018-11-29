@@ -26,9 +26,63 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTA
 endif()
 message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
 
-add_subdirectory(google_benchmark)
+#=== build gtest as an external project ===
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/google_benchmark/include ${TRIQS_INCLUDE_ALL})
+include(ExternalProject)
+set(GTEST_ROOT ${CMAKE_BINARY_DIR}/gtest)
+ExternalProject_Add(gtest_project
+  PREFIX gtest
+  GIT_REPOSITORY https://github.com/abseil/googletest
+  GIT_TAG release-1.8.1
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${GTEST_ROOT}
+)
+
+# Create the imported gtest target
+add_library(gtest STATIC IMPORTED)
+add_dependencies(gtest gtest_project)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ set(LIBTEST ${GTEST_ROOT}/lib/libgtest.a)
+else ()
+ set(LIBTEST ${GTEST_ROOT}/lib64/libgtest.a)
+endif()
+
+set_target_properties(gtest PROPERTIES
+  IMPORTED_LOCATION ${LIBTEST}
+  INTERFACE_LINK_LIBRARIES pthread
+  ## Populating the INTERFACE_INCLUDE_DIRECTORIES won't work
+  ## as the directory does not yet exist
+  INTERFACE_COMPILE_OPTIONS "-isystem;${GTEST_ROOT}/include"
+)
+
+#=== build google benchmark as an external project ===
+
+include(ExternalProject)
+set(GBENCH_ROOT ${CMAKE_BINARY_DIR}/gbenchmark)
+ExternalProject_Add(gtest_project
+  PREFIX gbench
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG release-v1.4.1
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${GBENCH_ROOT}
+)
+
+# Create the imported gtest target
+add_library(gbench STATIC IMPORTED)
+add_dependencies(gbench gbench_project)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ set(LIBBENCH ${GBENCH_ROOT}/lib/libgbench.a)
+else ()
+ set(LIBBENCH ${GBENCH_ROOT}/lib64/libgbench.a)
+endif()
+
+set_target_properties(gbench PROPERTIES
+  IMPORTED_LOCATION ${LIBBENCH}
+  INTERFACE_LINK_LIBRARIES pthread
+  ## Populating the INTERFACE_INCLUDE_DIRECTORIES won't work
+  ## as the directory does not yet exist
+  INTERFACE_COMPILE_OPTIONS "-isystem;${GBENCH_ROOT}/include"
+)
 
 add_subdirectory(benchs)
 
